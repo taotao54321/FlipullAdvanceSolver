@@ -1,0 +1,311 @@
+use std::num::NonZeroU32;
+
+use crate::block::BlocksSquare;
+use crate::move_::MoveSrc;
+
+/// 所要フレーム数を表す型。
+pub type Cost = u32;
+
+type NonZeroCost = NonZeroU32;
+
+/// 自機が 1 歩移動するのにかかるコスト。
+pub const COST_HERO_STEP: Cost = 16;
+
+/// 面クリア時のブロック消去演出のコスト (1 個あたり)。
+pub const COST_CLEAR_ERASE_BLOCK: Cost = 11;
+
+/// 自機の移動コストを求める。
+pub fn calc_hero_move_cost(from: MoveSrc, to: MoveSrc) -> Cost {
+    let d = from.to_inner().abs_diff(to.to_inner());
+
+    COST_HERO_STEP * Cost::from(d)
+}
+
+/// 着手のコストを求める。
+/// ブロックを投げた位置を `src`、置換前に最後にブロックが通った位置を `sq_last` とする。
+pub fn calc_move_cost(src: MoveSrc, sq_last: BlocksSquare) -> Cost {
+    const TABLE: [[Option<NonZeroCost>; BlocksSquare::NUM]; MoveSrc::NUM] = {
+        use crate::move_::*;
+
+        let mut res = [[None; BlocksSquare::NUM]; MoveSrc::NUM];
+
+        macro_rules! set {
+            ($src:expr, $sq:expr, $cost:expr) => {{
+                let cost = unsafe { NonZeroCost::new_unchecked($cost) };
+                res[$src.to_index()][$sq.to_index()] = Some(cost);
+            }};
+        }
+
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA1, 107);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA2, 113);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA3, 119);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA4, 125);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA5, 131);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqA6, 132);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB1, 103);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB2, 109);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB3, 115);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB4, 121);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB5, 127);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqB6, 128);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC1, 99);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC2, 105);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC3, 111);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC4, 117);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC5, 123);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqC6, 124);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD1, 95);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD2, 101);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD3, 107);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD4, 113);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD5, 119);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqD6, 120);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE1, 91);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE2, 97);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE3, 103);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE4, 109);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE5, 115);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqE6, 116);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF1, 87);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF2, 93);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF3, 99);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF4, 105);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF5, 111);
+        set!(MOVE_SRC_ROW_0, BlocksSquare::SqF6, 112);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA1, 104);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA2, 110);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA3, 116);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA4, 122);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA5, 128);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqA6, 129);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB1, 100);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB2, 106);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB3, 112);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB4, 118);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB5, 124);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqB6, 125);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC1, 96);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC2, 102);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC3, 108);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC4, 114);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC5, 120);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqC6, 121);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD1, 92);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD2, 98);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD3, 104);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD4, 110);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD5, 116);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqD6, 117);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE1, 88);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE2, 94);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE3, 100);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE4, 106);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE5, 112);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqE6, 113);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF1, 84);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF2, 90);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF3, 96);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF4, 102);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF5, 108);
+        set!(MOVE_SRC_ROW_1, BlocksSquare::SqF6, 109);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA1, 100);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA2, 106);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA3, 112);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA4, 118);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA5, 124);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqA6, 125);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB1, 96);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB2, 102);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB3, 108);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB4, 114);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB5, 120);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqB6, 121);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC1, 92);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC2, 98);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC3, 104);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC4, 110);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC5, 116);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqC6, 117);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD1, 88);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD2, 94);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD3, 100);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD4, 106);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD5, 112);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqD6, 113);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE1, 84);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE2, 90);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE3, 96);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE4, 102);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE5, 108);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqE6, 109);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF1, 80);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF2, 86);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF3, 92);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF4, 98);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF5, 104);
+        set!(MOVE_SRC_ROW_2, BlocksSquare::SqF6, 105);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA1, 96);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA2, 102);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA3, 108);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA4, 114);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA5, 120);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqA6, 121);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB1, 92);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB2, 98);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB3, 104);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB4, 110);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB5, 116);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqB6, 117);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC1, 88);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC2, 94);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC3, 100);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC4, 106);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC5, 112);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqC6, 113);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD1, 84);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD2, 90);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD3, 96);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD4, 102);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD5, 108);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqD6, 109);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE1, 80);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE2, 86);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE3, 92);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE4, 98);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE5, 104);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqE6, 105);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF1, 76);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF2, 82);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF3, 88);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF4, 94);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF5, 100);
+        set!(MOVE_SRC_ROW_3, BlocksSquare::SqF6, 101);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA1, 92);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA2, 98);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA3, 104);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA4, 110);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA5, 116);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqA6, 117);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB1, 88);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB2, 94);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB3, 100);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB4, 106);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB5, 112);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqB6, 113);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC1, 84);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC2, 90);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC3, 96);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC4, 102);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC5, 108);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqC6, 109);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD1, 80);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD2, 86);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD3, 92);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD4, 98);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD5, 104);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqD6, 105);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE1, 76);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE2, 82);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE3, 88);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE4, 94);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE5, 100);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqE6, 101);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF1, 72);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF2, 78);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF3, 84);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF4, 90);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF5, 96);
+        set!(MOVE_SRC_ROW_4, BlocksSquare::SqF6, 97);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA1, 87);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA2, 93);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA3, 99);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA4, 105);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA5, 111);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqA6, 112);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB1, 83);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB2, 89);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB3, 95);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB4, 101);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB5, 107);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqB6, 108);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC1, 79);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC2, 85);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC3, 91);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC4, 97);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC5, 103);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqC6, 104);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD1, 75);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD2, 81);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD3, 87);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD4, 93);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD5, 99);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqD6, 100);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE1, 71);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE2, 77);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE3, 83);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE4, 89);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE5, 95);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqE6, 96);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF1, 67);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF2, 73);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF3, 79);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF4, 85);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF5, 91);
+        set!(MOVE_SRC_ROW_5, BlocksSquare::SqF6, 92);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA1, 83);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA2, 89);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA3, 95);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA4, 101);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA5, 107);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqA6, 108);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqB1, 77);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqC1, 73);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqD1, 69);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqE1, 65);
+        set!(MOVE_SRC_ROW_6, BlocksSquare::SqF1, 61);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqA2, 85);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqA3, 91);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqA4, 97);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqA5, 103);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqA6, 104);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqB2, 79);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqC2, 75);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqD2, 71);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqE2, 67);
+        set!(MOVE_SRC_ROW_7, BlocksSquare::SqF2, 63);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqA3, 87);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqA4, 93);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqA5, 99);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqA6, 100);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqB3, 81);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqC3, 77);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqD3, 73);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqE3, 69);
+        set!(MOVE_SRC_ROW_8, BlocksSquare::SqF3, 65);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqA4, 89);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqA5, 95);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqA6, 96);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqB4, 83);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqC4, 79);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqD4, 75);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqE4, 71);
+        set!(MOVE_SRC_ROW_9, BlocksSquare::SqF4, 67);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqA5, 91);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqA6, 92);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqB5, 85);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqC5, 81);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqD5, 77);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqE5, 73);
+        set!(MOVE_SRC_ROW_10, BlocksSquare::SqF5, 69);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqA6, 88);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqB6, 87);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqC6, 83);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqD6, 79);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqE6, 75);
+        set!(MOVE_SRC_ROW_11, BlocksSquare::SqF6, 71);
+
+        res
+    };
+
+    TABLE[src.to_index()][sq_last.to_index()].unwrap().get()
+}

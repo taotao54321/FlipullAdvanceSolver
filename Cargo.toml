@@ -1,0 +1,15 @@
+[package]
+name = "flipull-advance-solver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.71"
+itertools = "0.10.5"
+log = "0.4.18"
+
+[dev-dependencies]
+clap = { version = "4.3.1", features = ["derive"] }
+env_logger = "0.10.0"
+indoc = "2.0.1"
+pretty_assertions = "1.3.0"

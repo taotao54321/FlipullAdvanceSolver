@@ -9,6 +9,10 @@ use flipull_advance_solver::*;
 /// 指定した問題に対する実時間最速の解を求める。
 #[derive(Debug, Parser)]
 struct Cli {
+    /// 最終面かどうか。
+    #[arg(long)]
+    last_stage: bool,
+
     /// 問題ファイル。
     path_problem: PathBuf,
 }
@@ -26,11 +30,11 @@ fn main() -> anyhow::Result<()> {
     })?;
     let problem: Problem = problem.parse()?;
 
-    if let Some((solution, cost)) = solve_problem(&problem) {
+    if let Some((solution, cost)) = solve_problem(&problem, cli.last_stage) {
         println!("{solution}");
 
         let cost_verify = solution
-            .verify(&problem)
+            .verify(&problem, cli.last_stage)
             .context("最適解の verify に失敗")?;
         ensure!(
             cost_verify == cost,

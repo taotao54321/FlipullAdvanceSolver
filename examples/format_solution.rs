@@ -69,7 +69,7 @@ fn format_pretty(mut pos: Position, moves: &[Move], solution: &Solution) {
         assert_ne!(pos.move_remain(), 0);
 
         let mv = moves.iter().copied().find(|mv| mv.src() == src).unwrap();
-        let (pos_nxt, cost_mv) = pos.do_move(mv).unwrap();
+        let (pos_nxt, cost_mv, _) = pos.do_move(mv).unwrap();
 
         pos = pos_nxt;
         cost_total += cost_mv;
@@ -112,7 +112,7 @@ fn solution_to_movie(mut pos: Position, moves: &[Move], solution: &Solution) -> 
         inputs.extend(&inputs_hero);
 
         let mv = moves.iter().copied().find(|mv| mv.src() == src).unwrap();
-        let (pos_nxt, cost_mv) = pos.do_move(mv).unwrap();
+        let (pos_nxt, cost_mv, _) = pos.do_move(mv).unwrap();
 
         // ブロックを投げて待つ。
         let wait_len = cost_mv as usize - inputs_hero.len() - 1;

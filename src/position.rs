@@ -42,9 +42,11 @@ impl Position {
         self.blocks.block_count()
     }
 
-    /// 着手を行い、結果と所要コストを返す。
+    /// 着手を行い、(結果, 総所要コスト, ブロック投げコスト) を返す。
     /// 着手が無効なら `None` を返す。
-    pub fn do_move(&self, mv: Move) -> Option<(Self, Cost)> {
+    ///
+    /// ブロック投げコストは総所要コストから自機の移動コストを引いたもの。
+    pub fn do_move(&self, mv: Move) -> Option<(Self, Cost, Cost)> {
         assert!(self.move_remain > 0);
 
         let cost_hero_move = calc_hero_move_cost(self.hero_row, mv.src());
@@ -56,7 +58,7 @@ impl Position {
         }?;
         let move_remain = self.move_remain - 1;
 
-        let cost_move = calc_move_cost(mv.src(), sq_last);
+        let cost_throw = calc_move_cost(mv.src(), sq_last);
 
         let pos_nxt = Self {
             hero_row,
@@ -65,9 +67,9 @@ impl Position {
             move_remain,
         };
 
-        let cost = cost_hero_move + cost_move;
+        let cost = cost_hero_move + cost_throw;
 
-        Some((pos_nxt, cost))
+        Some((pos_nxt, cost, cost_throw))
     }
 }
 
@@ -221,7 +223,7 @@ mod tests {
         for (before, mv, after) in cases {
             let before = parse_position(before);
             let after = parse_position(after);
-            let (after_actual, _) = before.do_move(mv).unwrap();
+            let (after_actual, _, _) = before.do_move(mv).unwrap();
             assert_eq!(after_actual, after);
         }
     }

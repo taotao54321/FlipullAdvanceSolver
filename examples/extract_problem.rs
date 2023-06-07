@@ -128,7 +128,7 @@ impl Rom {
         let (_prg, chr) = body.split_at(PRG_LEN);
         ensure!(
             chr.len() == CHR_LEN,
-            "CHR サイズが一致しない (expect={CHR_LEN:#04X}, actual={:#04X})",
+            "CHR サイズが一致しない (expect={CHR_LEN:#06X}, actual={:#06X})",
             chr.len()
         );
 
